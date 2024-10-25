@@ -17,9 +17,6 @@ horusec start --project-path . --output-format json --json-output-file horusec-r
 # Run OWASP ZAP scan
 docker run --rm -v $(pwd):/zap/wrk/ -t owasp/zap2docker-stable zap-baseline.py -t $TARGET_URL -r zap_report.xml
 
-# Run Dastardly scan
-docker run --rm -v $(pwd):/src dastardly-ci/dastardly scan --project . --output dastardly-report.xml
-
 # Upload results to DefectDojo
 curl -X POST "$DEFECTDOJO_URL/api/v2/import-scan/" \
      -H "Authorization: Token $DEFECTDOJO_API_KEY" \

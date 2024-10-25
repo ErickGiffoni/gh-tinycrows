@@ -34,9 +34,6 @@ RUN curl -L "${ZAP_URL}" -o zap.tar.gz && \
     rm zap.tar.gz && \
     export PATH="/zap:$PATH"
 
-# Install Dastardly
-RUN docker pull dastardly-ci/dastardly
-
 # Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
