@@ -41,11 +41,11 @@ runs:
       run: |
         ZAP_VERSION="2.15.0"
         ZAP_URL="https://github.com/zaproxy/zaproxy/releases/download/v${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Linux.tar.gz"
+        mkdir -p ./zap
         curl -L "${ZAP_URL}" -o zap.tar.gz
-        mkdir /zap
-        tar -xvzf zap.tar.gz -C /zap --strip-components=1
+        tar -xvzf zap.tar.gz -C ./zap --strip-components=1
         rm zap.tar.gz
-        /zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.xml
+        ./zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.xml
 
     - name: Run Dastardly Scan
       uses: PortSwigger/dastardly-github-action@v1.0.0
