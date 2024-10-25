@@ -1,6 +1,7 @@
 name: "Security Scan Action"
-description: "Run Horusec, Dependency-Check and OWASP ZAP scans and upload results to DefectDojo."
+description: "Run Horusec, Dependency-Check, OWASP ZAP scans, and Dastardly scans, then upload results to DefectDojo."
 author: "TinyCrows"
+
 inputs:
   defectdojo_url:
     description: "DefectDojo API URL"
@@ -17,15 +18,70 @@ inputs:
   target_url:
     description: "Target URL for DAST scans (OWASP ZAP)"
     required: true
+
 runs:
-  using: "docker"
-  image: "Dockerfile"
-  args:
-    - ${{ inputs.defectdojo_url }}
-    - ${{ inputs.defectdojo_api_key }}
-    - ${{ inputs.engagement_id }}
-    - ${{ inputs.repo_token }}
-    - ${{ inputs.target_url }}
+  using: "composite"  # Use composite to include other actions
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Java for Dependency-Check
+      shell: bash
+      run: |
+        sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
+
+    - name: Install Dependency-Check
+      shell: bash
+      run: |
+        curl -LO https://github.com/jeremylong/DependencyCheck/releases/download/v6.5.0/dependency-check-6.5.0-release.zip
+        unzip dependency-check-6.5.0-release.zip -d dependency-check
+
+    - name: Run Horusec
+      shell: bash
+      run: |
+        # Ensure Horusec is installed
+        curl -fsSL https://github.com/ZupIT/horusec/releases/latest/download/horusec_linux_amd64 -o horusec
+        chmod +x horusec
+        mv horusec /usr/local/bin/horusec
+        # Command to run Horusec
+        horusec start --api-url=${{ inputs.defectdojo_url }} --api-key=${{ inputs.defectdojo_api_key }}
+
+    - name: Run Dependency-Check
+      shell: bash
+      run: |
+        # Command to run Dependency-Check
+        ./dependency-check/bin/dependency-check.sh --project YourProjectName --scan . --out . --failOnCVSS 7
+
+    - name: Download and Run OWASP ZAP
+      shell: bash
+      run: |
+        # Set ZAP version and download link
+        ZAP_VERSION="2.15.0"
+        ZAP_URL="https://github.com/zaproxy/zaproxy/releases/download/v${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Linux.tar.gz"
+
+        # Download and extract OWASP ZAP
+        curl -L "${ZAP_URL}" -o zap.tar.gz
+        mkdir /zap
+        tar -xvzf zap.tar.gz -C /zap --strip-components=1
+        rm zap.tar.gz
+
+        # Run OWASP ZAP
+        /zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.html
+
+    - name: Run Dastardly Scan
+      uses: PortSwigger/dastardly-github-action@v1  # Use the appropriate version
+      with:
+        target-url: ${{ inputs.target_url }}
+        engagement-id: ${{ inputs.engagement_id }}
+        defectdojo-url: ${{ inputs.defectdojo_url }}
+        defectdojo-api-key: ${{ inputs.defectdojo_api_key }}
+
+    - name: Upload results to DefectDojo
+      shell: bash
+      run: |
+        # Command to upload results to DefectDojo
+        curl -X POST -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" -F "file=@zap_report.html" "${{ inputs.defectdojo_url }}/api/v2/import-scan/"
+
 branding:
   icon: "shield"
   color: "blue"
