@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     jq \
     openjdk-11-jdk \
     unzip \
+    bash \
     && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
 # Install Horusec CLI
