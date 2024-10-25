@@ -1,5 +1,5 @@
 name: "Security Scan Action"
-description: "Run Horusec, Dependency-Check, OWASP ZAP, and Dastardly scans and upload results to DefectDojo."
+description: "Run Horusec, Dependency-Check and OWASP ZAP scans and upload results to DefectDojo."
 author: "TinyCrows"
 inputs:
   defectdojo_url:
@@ -15,7 +15,7 @@ inputs:
     description: "GitHub Token"
     required: true
   target_url:
-    description: "Target URL for DAST scans (OWASP ZAP, Dastardly)"
+    description: "Target URL for DAST scans (OWASP ZAP)"
     required: true
 runs:
   using: "docker"
