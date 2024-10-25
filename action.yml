@@ -45,7 +45,23 @@ runs:
         curl -L "${ZAP_URL}" -o zap.tar.gz
         tar -xvzf zap.tar.gz -C ./zap --strip-components=1
         rm zap.tar.gz
-        ./zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.xml
+
+        # Start ZAP in daemon mode
+        ./zap/zap.sh -daemon -host 0.0.0.0 -port 8080 &
+        
+        # Wait for ZAP to start
+        echo "Waiting for ZAP to initialize..."
+        sleep 30
+        
+        # Perform a quick scan
+        curl "http://localhost:8080/JSON/ascan/action/scan/?url=${{ inputs.target_url }}"
+        
+        # Wait for scan to complete
+        echo "Waiting for ZAP scan to complete..."
+        sleep 60
+        
+        # Generate the report
+        curl "http://localhost:8080/OTHER/core/other/xmlreport/" -o zap_report.xml
 
     - name: Run Dastardly Scan
       uses: PortSwigger/dastardly-github-action@v1.0.0
