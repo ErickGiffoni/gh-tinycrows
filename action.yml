@@ -69,7 +69,7 @@ runs:
         /zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.html
 
     - name: Run Dastardly Scan
-      uses: PortSwigger/dastardly-github-action@v1  # Use the appropriate version
+      uses: PortSwigger/dastardly-github-action@v1.0.0
       with:
         target-url: ${{ inputs.target_url }}
         engagement-id: ${{ inputs.engagement_id }}
