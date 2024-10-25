@@ -44,13 +44,14 @@ runs:
         chmod +x horusec
         mv horusec /usr/local/bin/horusec
         # Command to run Horusec
-        horusec start --api-url=${{ inputs.defectdojo_url }} --api-key=${{ inputs.defectdojo_api_key }}
+        horusec start --project-path . -D
+        horusec start --project-path . --output-format json --json-output-file horusec-report.json -D
 
     - name: Run Dependency-Check
       shell: bash
       run: |
         # Command to run Dependency-Check
-        ./dependency-check/bin/dependency-check.sh --project YourProjectName --scan . --out . --failOnCVSS 7
+        ./dependency-check/bin/dependency-check.sh --project "MyProject" --scan "./" --format "XML" --out "dependency-check-report.xml"
 
     - name: Download and Run OWASP ZAP
       shell: bash
@@ -66,7 +67,7 @@ runs:
         rm zap.tar.gz
 
         # Run OWASP ZAP
-        /zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.html
+        /zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.xml
 
     - name: Run Dastardly Scan
       uses: PortSwigger/dastardly-github-action@v1.0.0
@@ -76,11 +77,39 @@ runs:
         defectdojo-url: ${{ inputs.defectdojo_url }}
         defectdojo-api-key: ${{ inputs.defectdojo_api_key }}
 
-    - name: Upload results to DefectDojo
+    - name: Upload Horusec results to DefectDojo
       shell: bash
       run: |
         # Command to upload results to DefectDojo
-        curl -X POST -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" -F "file=@zap_report.html" "${{ inputs.defectdojo_url }}/api/v2/import-scan/"
+        curl -X POST "${{ inputs.defectdojo_url }}/api/v2/import-scan/" \
+        -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" \
+        -F "engagement=${{ inputs.engagement_id }}" \
+        -F 'scan_type=Horusec Scan' \
+        -F 'file=@horusec-report.json' \
+        -F 'active=true' \
+        -F 'verified=true'
+
+    - name: Upload Dependency-Check results to DefectDojo
+      shell: bash
+      run: |
+        curl -X POST "${{ inputs.defectdojo_url }}/api/v2/import-scan/" \
+        -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" \
+        -F "engagement=${{ inputs.engagement_id }}" \
+        -F 'scan_type=Dependency Check Scan' \
+        -F 'file=@dependency-check-report.xml' \
+        -F 'active=true' \
+        -F 'verified=true'
+
+    - name: Upload OWASP ZAP results to DefectDojo
+      shell: bash
+      run: |
+        curl -X POST "${{ inputs.defectdojo_url }}/api/v2/import-scan/" \
+        -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" \
+        -F "engagement=${{ inputs.engagement_id }}" \
+        -F 'scan_type=ZAP Scan' \
+        -F 'file=@zap_report.xml' \
+        -F 'active=true' \
+        -F 'verified=true'
 
 branding:
   icon: "shield"
