@@ -1,13 +1,17 @@
-# Base image
+# Use the Ubuntu 20.04 image
 FROM ubuntu:20.04
 
-# Install required packages
+# Set frontend to noninteractive to prevent tzdata prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install necessary packages
 RUN apt-get update && apt-get install -y \
     curl \
     git \
     jq \
     openjdk-11-jdk \
-    unzip
+    unzip \
+    && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
 # Install Horusec CLI
 RUN curl -fsSL https://raw.githubusercontent.com/ZupIT/horusec/main/deployments/scripts/install.sh | bash -s latest
