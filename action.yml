@@ -25,11 +25,6 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Java for Dependency-Check
-      shell: bash
-      run: |
-        sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
-
     - name: Run Horusec
       shell: bash
       run: |
