@@ -1,5 +1,5 @@
 name: "Security Scan Action"
-description: "Run Horusec, Dependency-Check, OWASP ZAP scans, and Dastardly scans, then upload results to DefectDojo."
+description: "Run Horusec, OWASP ZAP and Dastardly scans, then upload results to DefectDojo."
 author: "TinyCrows"
 
 inputs:
@@ -30,12 +30,6 @@ runs:
       run: |
         sudo apt-get update && sudo apt-get install -y openjdk-11-jdk
 
-    - name: Install Dependency-Check
-      shell: bash
-      run: |
-        curl -LO https://github.com/jeremylong/DependencyCheck/releases/download/v6.5.0/dependency-check-6.5.0-release.zip
-        unzip dependency-check-6.5.0-release.zip -d dependency-check
-
     - name: Run Horusec
       shell: bash
       run: |
@@ -46,11 +40,6 @@ runs:
         # Run Horusec with JSON output
         horusec start --project-path . -D
         horusec start --project-path . --output-format json --json-output-file horusec-report.json -D
-
-    - name: Run Dependency-Check
-      shell: bash
-      run: |
-        ./dependency-check/bin/dependency-check.sh --project "MyProject" --scan "./" --format "XML" --out "dependency-check-report.xml"
 
     - name: Download and Run OWASP ZAP
       shell: bash
@@ -79,17 +68,6 @@ runs:
         -F "engagement=${{ inputs.engagement_id }}" \
         -F 'scan_type=Horusec Scan' \
         -F 'file=@horusec-report.json' \
-        -F 'active=true' \
-        -F 'verified=true'
-
-    - name: Upload Dependency-Check results to DefectDojo
-      shell: bash
-      run: |
-        curl -X POST "${{ inputs.defectdojo_url }}/api/v2/import-scan/" \
-        -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" \
-        -F "engagement=${{ inputs.engagement_id }}" \
-        -F 'scan_type=Dependency Check Scan' \
-        -F 'file=@dependency-check-report.xml' \
         -F 'active=true' \
         -F 'verified=true'
 
