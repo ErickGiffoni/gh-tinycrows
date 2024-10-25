@@ -20,7 +20,7 @@ inputs:
     required: true
 
 runs:
-  using: "composite"  # Use composite to include other actions
+  using: "composite"
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -43,30 +43,24 @@ runs:
         curl -fsSL https://github.com/ZupIT/horusec/releases/latest/download/horusec_linux_amd64 -o horusec
         chmod +x horusec
         mv horusec /usr/local/bin/horusec
-        # Command to run Horusec
+        # Run Horusec with JSON output
         horusec start --project-path . -D
         horusec start --project-path . --output-format json --json-output-file horusec-report.json -D
 
     - name: Run Dependency-Check
       shell: bash
       run: |
-        # Command to run Dependency-Check
         ./dependency-check/bin/dependency-check.sh --project "MyProject" --scan "./" --format "XML" --out "dependency-check-report.xml"
 
     - name: Download and Run OWASP ZAP
       shell: bash
       run: |
-        # Set ZAP version and download link
         ZAP_VERSION="2.15.0"
         ZAP_URL="https://github.com/zaproxy/zaproxy/releases/download/v${ZAP_VERSION}/ZAP_${ZAP_VERSION}_Linux.tar.gz"
-
-        # Download and extract OWASP ZAP
         curl -L "${ZAP_URL}" -o zap.tar.gz
         mkdir /zap
         tar -xvzf zap.tar.gz -C /zap --strip-components=1
         rm zap.tar.gz
-
-        # Run OWASP ZAP
         /zap/zap.sh -quickurl ${{ inputs.target_url }} -quickout zap_report.xml
 
     - name: Run Dastardly Scan
@@ -80,7 +74,6 @@ runs:
     - name: Upload Horusec results to DefectDojo
       shell: bash
       run: |
-        # Command to upload results to DefectDojo
         curl -X POST "${{ inputs.defectdojo_url }}/api/v2/import-scan/" \
         -H "Authorization: Token ${{ inputs.defectdojo_api_key }}" \
         -F "engagement=${{ inputs.engagement_id }}" \
