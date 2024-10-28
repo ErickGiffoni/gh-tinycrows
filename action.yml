@@ -51,14 +51,14 @@ runs:
         
         # Wait for ZAP to start
         echo "Waiting for ZAP to initialize..."
-        sleep 30
+        sleep 60
         
         # Perform a quick scan
         curl "http://localhost:8080/JSON/ascan/action/scan/?url=${{ inputs.target_url }}"
         
         # Wait for scan to complete
         echo "Waiting for ZAP scan to complete..."
-        sleep 60
+        sleep 90
         
         # Generate the report
         curl "http://localhost:8080/OTHER/core/other/xmlreport/" -o zap_report.xml
