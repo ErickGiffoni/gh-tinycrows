@@ -66,7 +66,8 @@ runs:
     - name: Run Dastardly Scan
       uses: PortSwigger/dastardly-github-action@v1.0.0
       with:
-        target-url: ${{ inputs.target_url }}
+        BURP_START_URL: ${{ inputs.target_url }}
+        BURP_REPORT_FILE_PATH: dastardly_report.json
         engagement-id: ${{ inputs.engagement_id }}
         defectdojo-url: ${{ inputs.defectdojo_url }}
         defectdojo-api-key: ${{ inputs.defectdojo_api_key }}
